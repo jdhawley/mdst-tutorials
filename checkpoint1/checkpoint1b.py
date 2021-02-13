@@ -7,10 +7,10 @@ Here you will create a script to preprocess the data given in starbucks.csv. You
 a jupyter notebook or python terminal to develop your code and test each function as you go... 
 you can import this file and its functions directly:
 
-    - jupyter notebook: include the lines `%autoreload 2` and `import preprocess`
+    - jupyter notebook: include the lines `%autoreload 2` and `import checkpoint1b`
                         then just call preprocess.remove_percents(df) to test
                         
-    - python terminal: run `from importlib import reload` and `import preprocess`
+    - python terminal: run `from importlib import reload` and `import checkpoint1b`
                        each time you modify this file, run `reload(preprocess)`
 
 Once you are finished with this program, you should run `python preprocess.py` from the terminal.
@@ -18,19 +18,30 @@ This should load the data, perform preprocessing, and save the output to the dat
 
 """
 
+import pandas as pd
+import re
+
 def remove_percents(df, col):
+    df[col] = pd.to_numeric(df[col].str.rstrip("%"))
     return df
 
 def fill_zero_iron(df):
+    df['Iron (% DV)'] = df['Iron (% DV)'].fillna(0)
     return df
     
 def fix_caffeine(df):
+    # Intentionally leaving NaN as NaN since it's not clear what NaN means in this context. All non numeric 
+    # (i.e. "varies") are being converted to NaN intentionally to avoid interfering with statistical analysis 
+    # on the known caffeine values.
+    df['Caffeine (mg)'] = df['Caffeine (mg)'].apply(pd.to_numeric, errors='coerce')
     return df
 
 def standardize_names(df):
+    df.columns = [re.sub(r' \(.+\)', '', col).lower() for col in df.columns]
     return df
 
 def fix_strings(df, col):
+    df[col] = df[col].str.replace(r'[^a-zA-Zè ]', '', regex=True).str.lower()
     return df
 
 
@@ -67,7 +78,7 @@ def main():
     # now that the data is all clean, save your output to the `data` folder as 'starbucks_clean.csv'
     # you will use this file in checkpoint 2
     
-    
+    df.to_csv('../data/starbucks_clean.csv', index=False)
 
 if __name__ == "__main__":
     main()
